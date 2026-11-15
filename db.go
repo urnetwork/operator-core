@@ -32,7 +32,8 @@ var (
 
 // The database. Instances are safe for concurrent use.
 type Db interface {
-	// Runs callback on one connection, read-only unless DbReadWrite is given. The implementation owns
+	// Runs callback on one connection. Without DbReadWrite the session keeps the database's default
+	// access, which a host may hold read-only; DbReadWrite makes it read-write. The implementation owns
 	// retries: a connection failure before callback wrote anything, and a transient failure (a
 	// serialization failure, a deadlock, ErrDbRerun) rerun callback whole after a backoff and within the
 	// implementation's budget, so callback must be safe to run again and publish nothing outside the
@@ -157,8 +158,8 @@ const (
 
 func (self DbIsolation) dbOption() {}
 
-// Read-only or read-write. Db's default is read-only and Tx's read-write; a process the host holds
-// read-only stays read-only whatever this says.
+// Read-only or read-write. Db's default leaves the session's own default, as server's helpers do, and
+// Tx's default is read-write; a process the host holds read-only stays read-only whatever this says.
 type DbAccess int
 
 const (

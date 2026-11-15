@@ -185,16 +185,11 @@ func dbShow(ctx context.Context, querier operator.DbQuerier, setting string) (st
 }
 
 func dbCheckAccess(ctx context.Context, db operator.Db) error {
+	// Db's default leaves the session's own default, which the host sets, so only the options are read
 	for _, c := range []struct {
 		run  func(func(querier operator.DbQuerier) error) error
 		want string
 	}{
-		{
-			run: func(read func(querier operator.DbQuerier) error) error {
-				return db.Db(ctx, func(conn operator.DbConn) error { return read(conn) })
-			},
-			want: "on",
-		},
 		{
 			run: func(read func(querier operator.DbQuerier) error) error {
 				return db.Db(ctx, func(conn operator.DbConn) error { return read(conn) }, operator.DbReadWrite)
