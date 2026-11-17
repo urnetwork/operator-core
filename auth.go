@@ -23,9 +23,8 @@ import (
 var ErrAuthenticationRefused = errors.New("authentication refused")
 
 // An Authenticate error that says nothing about the token and names how long its caller should wait
-// before it asks again: a host whose state check could not answer yet, as sockets' Client-class check
-// cannot on a revocation-record miss or a store outage (plan-SOCK-client-auth, QD-040). It is no refusal,
-// so an engine answers unavailable, and an engine that carries a wait may carry this one.
+// before it asks again: a host whose state check could not answer yet and knows when it may. It is no
+// refusal, so an engine answers unavailable, and an engine that carries a wait may carry this one.
 type AuthenticationUnavailableError struct {
 	// How long the caller should wait. Non-positive names no wait.
 	RetryAfter time.Duration
@@ -95,19 +94,17 @@ func (self *Principal) Validate() error {
 }
 
 // Verifies tokens for one process, from the keys that process mounts (§19.4). Service tokens verify
-// offline; what a token's subject has lost since it was issued is the engine's to check, against rev/
-// objects and the newest projection (§7.8, §11.8). Client-class tokens verify offline too, and the host
-// checks what their client has lost (QD-040). Safe for concurrent use.
+// offline; what a token's subject has lost since it was issued is checked against rev/ objects and the
+// newest projection (§7.8, §11.8), by the engine, or by the host for an engine that reads no rev/ itself,
+// as sockets' does not (QD-1029). Safe for concurrent use.
 type Authenticator interface {
 	// The Principal jwt names, for audience, the one this engine serves: §7.8's "evs", "gkm", "dns",
-	// "certs" or "mail". Every service audience shares one key set (§7.8), so a token good for one audience
-	// verifies under another's keys: the audience is required and an empty one refuses. A token that
-	// Principal.Validate would refuse refuses here. Refusal is ErrAuthenticationRefused, wrapped or not.
+	// "certs", "mail" or "sockets". Every service audience shares one key set (§7.8), so a token good for
+	// one audience verifies under another's keys: the audience is required and an empty one refuses. A
+	// token that Principal.Validate would refuse refuses here. Refusal is ErrAuthenticationRefused, wrapped
+	// or not.
 	//
-	// sockets' callers hold Client-class tokens, by client jwts with no service audience, which its engine
-	// passes under "sockets" (plan-SOCK-client-auth, QD-040). A host verifies them offline and checks their
-	// revocation record alone, never SQL, and maps one to a Principal of that audience: the token's network
-	// and client, its sidecar_id claim as SidecarId, no scopes. A host with no such verifier answers them
-	// unavailable, and one whose check cannot answer yet answers an *AuthenticationUnavailableError.
+	// sockets' callers hold service tokens of audience "sockets" (QD-1029), its sidecar the token's
+	// ur_sidecar_id, as SidecarId.
 	Authenticate(ctx context.Context, audience string, jwt string) (*Principal, error)
 }
