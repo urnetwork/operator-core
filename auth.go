@@ -22,26 +22,6 @@ import (
 // unavailable, so a caller retries instead of signing out.
 var ErrAuthenticationRefused = errors.New("authentication refused")
 
-// An Authenticate error that says nothing about the token and names how long its caller should wait
-// before it asks again: a host whose state check could not answer yet and knows when it may. It is no
-// refusal, so an engine answers unavailable, and an engine that carries a wait may carry this one.
-type AuthenticationUnavailableError struct {
-	// How long the caller should wait. Non-positive names no wait.
-	RetryAfter time.Duration
-	// Why the host could not answer.
-	Err error
-}
-
-// The wait and the cause, never the token.
-func (self *AuthenticationUnavailableError) Error() string {
-	return fmt.Sprintf("authentication unavailable, retry after %s: %v", self.RetryAfter, self.Err)
-}
-
-// The cause, so errors.Is sees what the host could not reach.
-func (self *AuthenticationUnavailableError) Unwrap() error {
-	return self.Err
-}
-
 // Who a verified token names. Service tokens carry §7.8's claims. NetworkId, ClientId and Audience are
 // required, and Validate refuses a value without them. A claim marked nil below may be missing, and an
 // engine that needs it refuses the request.
