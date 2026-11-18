@@ -4,11 +4,15 @@
 // implements it in server/core; sidecar imports it and takes it; it imports connect, and nothing it
 // imports imports it back.
 //
-// It holds no service implementation and no global service state. Where server keeps package-level
-// functions in one shared namespace (server.Db, server.Tx, its Redis and blob helpers), this package
-// declares interfaces whose instances an Env creates, so a host can give each extension services of its
-// own. The value types' own methods, and the constructors and pure helpers those methods need, are the
-// only code here.
+// It holds no service implementation. Where server keeps package-level functions in one shared namespace
+// (server.Db, server.Tx, its Redis and blob helpers), this package declares interfaces whose instances an
+// Env creates, so a host can give each extension services of its own. The value types' own methods, and
+// the constructors and pure helpers those methods need, are the only other code here.
+//
+// Its one piece of process-wide state is the global Env (global_env.go; QD-1027): a hosting process sets
+// its Env once at its start with SetGlobalEnv, and code a host calls with no Env in hand reads it with
+// GlobalEnv, which refuses every service until one is set. Nothing else here is global: an extension's
+// registry, like every service, is an instance its host holds.
 //
 // Until the build's review phase moves the call sites (§4.18), sidecar and server keep Go type aliases of
 // what moved here, and sidecar keeps ServiceHost, a struct of these interfaces, so every engine compiles

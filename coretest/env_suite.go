@@ -3,8 +3,9 @@
 // the private test stack) and, from the build's review phase, by the in-memory fakes that move here from
 // sidecartest. Only test legs import it.
 //
-// This is the suites' skeleton: EnvSuite and DbSuite hold the shapes every implementation shares. The
-// per-service suites (Redis, the file clusters, the write budget and the rest) arrive with the fakes.
+// This is the suites' skeleton: EnvSuite and DbSuite hold the shapes every implementation shares, and
+// SetGlobalEnv sets operator's global Env for one test (global_env.go). The per-service suites (Redis,
+// the file clusters, the write budget and the rest) arrive with the fakes.
 package coretest
 
 import (

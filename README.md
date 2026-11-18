@@ -12,10 +12,14 @@ DESIGN.md §4.4, §4.5 and §4.7).
   migrations and its engines' constructors over an `Env`, with the registry a host iterates.
 - The value types server and its extensions share: `Id`, `ByteCount`, `NanoCents`, the blob object
   records and the sentinel errors the interfaces return.
+- The global `Env`: `SetGlobalEnv`, which a hosting process calls once at its start, and `GlobalEnv`,
+  which code a host calls with no `Env` in hand reads. Until one is set it answers an `Env` that
+  refuses every service, never a nil.
 
-This module holds no service implementation and no global service state: server implements the
-interfaces in `server/core`. It imports connect, and nothing it imports imports it back. `coretest/` is
-a separate module of conformance suites and test helpers, which only test legs import.
+This module holds no service implementation: server implements the interfaces in `server/core`. The
+global `Env` is its one piece of process-wide state. It imports connect, and nothing it imports imports
+it back. `coretest/` is a separate module of conformance suites and test helpers, which only test legs
+import.
 
 Development uses sibling checkouts through `replace` lines, as connect's other consumers do. Commits
 pass `.githooks/commit-msg` (`git config core.hooksPath .githooks`).
