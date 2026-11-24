@@ -30,6 +30,10 @@ const (
 	ServiceGateMxedge   = "mxedge"
 	ServiceGateSmtpedge = "smtpedge"
 	ServiceGateDns      = "dns"
+	// DESIGN-COMPUTE §14.2's broker and orchestrator, the compute block. The compute design names no gate of its
+	// own, so §19.11's rule that every new service has one governs: closed until the owner opens it network by
+	// network.
+	ServiceGateCompute = "compute"
 )
 
 // §19.11's switches, each only `enabled`.
